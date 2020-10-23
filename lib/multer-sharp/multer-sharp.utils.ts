@@ -26,7 +26,7 @@ export const transformException = (error: Error | undefined) => {
 };
 
 export const transformImage = (options: SharpOptions, size: ResizeOption): Sharp => {
-  let imageStream = sharp({ failOnError: false, animated: true });
+  let imageStream = sharp({ failOnError: false, pages: -1 });
 
   for (const [key, value] of Object.entries(options)) {
     if (value) {

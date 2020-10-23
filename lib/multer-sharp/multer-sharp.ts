@@ -1,21 +1,20 @@
-import sharp, { Sharp } from 'sharp';
-import { StorageEngine } from 'multer';
 import { S3 } from 'aws-sdk';
 import { ManagedUpload } from 'aws-sdk/lib/s3/managed_upload';
-import { isFunction, isString } from '@nestjs/common/utils/shared.utils';
 import { Request } from 'express';
+import { extension, lookup } from 'mime-types';
+import { StorageEngine } from 'multer';
 import { from, Observable } from 'rxjs';
-import { map, mergeMap, toArray, first } from 'rxjs/operators';
-import { lookup, extension } from 'mime-types';
-import { S3StorageOptions, S3Storage } from './interfaces/s3-storage.interface';
-import { SharpOptions, Size, ExtendSize } from './interfaces/sharp-options.interface';
-import {
-  getSharpOptions,
-  getSharpOptionProps,
-  transformImage,
-  isOriginalSuffix,
-} from './multer-sharp.utils';
+import { first, map, mergeMap, toArray } from 'rxjs/operators';
+import sharp, { Sharp } from 'sharp';
+
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
+import { isFunction, isString } from '@nestjs/common/utils/shared.utils';
+
+import { S3Storage, S3StorageOptions } from './interfaces/s3-storage.interface';
+import { ExtendSize, SharpOptions, Size } from './interfaces/sharp-options.interface';
+import {
+  getSharpOptionProps, getSharpOptions, isOriginalSuffix, transformImage,
+} from './multer-sharp.utils';
 
 export interface EventStream {
   stream: NodeJS.ReadableStream & Sharp;
@@ -93,7 +92,9 @@ export class MulterSharp implements StorageEngine, S3Storage {
           } else {
             const paramDir = [];
             storageOpts.dynamicPath.forEach((pathSegment) => {
-              paramDir.push(routeParams.includes(pathSegment) ? req.params[pathSegment] : pathSegment);
+              paramDir.push(
+                routeParams.includes(pathSegment) ? req.params[pathSegment] : pathSegment,
+              );
             });
             params.Key = `${Key}/${paramDir.join('/')}/${originalname}`;
           }
@@ -137,7 +138,7 @@ export class MulterSharp implements StorageEngine, S3Storage {
             const resizedStream = transformImage(sharpOpts, size);
 
             if (isOriginalSuffix(size.suffix)) {
-              size.Body = stream.pipe(sharp({ failOnError: false }));
+              size.Body = stream.pipe(sharp({ failOnError: false, pages: -1 }));
             } else {
               size.Body = stream.pipe(resizedStream);
             }
