@@ -1,8 +1,10 @@
-import { BadRequestException, HttpException, PayloadTooLargeException } from '@nestjs/common';
 import sharp, { Sharp } from 'sharp';
-import { SharpOptions, ResizeOption } from './interfaces/sharp-options.interface';
-import { S3StorageOptions } from './interfaces/s3-storage.interface';
+
+import { BadRequestException, HttpException, PayloadTooLargeException } from '@nestjs/common';
+
 import { ExtendedOptions, MulterExceptions } from './enums';
+import { S3StorageOptions } from './interfaces/s3-storage.interface';
+import { ResizeOption, SharpOptions } from './interfaces/sharp-options.interface';
 
 export const transformException = (error: Error | undefined) => {
   if (!error || error instanceof HttpException) {
@@ -24,7 +26,7 @@ export const transformException = (error: Error | undefined) => {
 };
 
 export const transformImage = (options: SharpOptions, size: ResizeOption): Sharp => {
-  let imageStream = sharp({ failOnError: false });
+  let imageStream = sharp({ failOnError: false, animated: true });
 
   for (const [key, value] of Object.entries(options)) {
     if (value) {
@@ -35,12 +37,12 @@ export const transformImage = (options: SharpOptions, size: ResizeOption): Sharp
 };
 
 export const getSharpOptionProps = (storageOpts: S3StorageOptions) => {
-  const prop = Object.keys(storageOpts).filter(p => p === 'resize' || p === 'resizeMultiple')[0];
+  const prop = Object.keys(storageOpts).filter((p) => p === 'resize' || p === 'resizeMultiple')[0];
   return storageOpts[prop];
 };
 
 export const isOriginalSuffix = (suffix: string) => suffix === 'original';
-const isObject = obj => typeof obj === 'object' && obj !== null;
+const isObject = (obj) => typeof obj === 'object' && obj !== null;
 
 const resolveImageStream = (key: string, value, size, imageStream: Sharp) => {
   switch (key) {
